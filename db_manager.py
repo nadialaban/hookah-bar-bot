@@ -35,7 +35,7 @@ class User(base):
     birthday = Column(sqlalchemy.Date)
     confirmed = Column(sqlalchemy.Boolean)
     confirm_msg = Column(sqlalchemy.Integer)
-    action = db.Column(sqlalchemy.Text)
+    action = Column(sqlalchemy.Text)
 
 
 def get_message(msg_id):
