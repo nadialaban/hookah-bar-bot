@@ -39,7 +39,7 @@ class User(base):
 
 
 def get_message(msg_id):
-    msg = BotMessage.query.filter_by(id=msg_id).first()
+    msg = db.execute("SELECT TOP 1 * FROM films WHERE id=" + str(msg_id))
     if msg is not None:
         return msg.message
     return 'unexpected type'
