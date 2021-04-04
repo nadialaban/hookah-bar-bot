@@ -13,6 +13,7 @@ base = declarative_base()
 Session = sessionmaker(db)
 session = Session()
 
+
 # 2. Описание моделей
 # 2.1. Сообщение от бота
 class BotMessage(base):
@@ -24,7 +25,7 @@ class BotMessage(base):
 
 
 # 2.1. Пользователь
-class User(db.Model):
+class User(base):
     __tablename__ = 'users'
 
     id = Column(sqlalchemy.Integer, primary_key=True)
