@@ -39,7 +39,9 @@ class User(base):
 
 
 def get_message(msg_id):
-    msg = db.execute("SELECT TOP 1 * FROM films WHERE id=" + str(msg_id))
+    msg = db.execute("SELECT * FROM films WHERE id=" + str(msg_id))
+    print(msg)
+    print(msg[0])
     if msg is not None:
         return msg.message
     return 'unexpected type'
