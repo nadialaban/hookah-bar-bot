@@ -14,6 +14,7 @@ smileSmoke = '💨 Меню кальянов'
 smileDrinks = '☕️ Меню напитков'
 
 smileCalendar = '📆 Забронировать стол'
+smileBookings = '📆 Мои брони'
 smileBook = '📕 Меню'
 smileMoney = '💸 Акции и скидки'
 smileSocial = '👥 Социальные сети'
@@ -39,12 +40,12 @@ reviewMarkup = types.ReplyKeyboardMarkup()
 # 3.1.1.1. Основной функционал
 '''
 Структура главного меню юзера:
-        Бронь
+        Бронь - мои брони
         Меню - Акции
         Соцсети - Контакты
         Как добраться
 '''
-userMarkup.row(types.KeyboardButton(smileCalendar))
+userMarkup.row(types.KeyboardButton(smileCalendar), types.KeyboardButton(smileBookings))
 userMarkup.row(types.KeyboardButton(smileBook), types.KeyboardButton(smileMoney))
 userMarkup.row(types.KeyboardButton(smileSocial), types.KeyboardButton(smilePhone))
 userMarkup.row(types.KeyboardButton(smileMap))

@@ -113,6 +113,12 @@ def get_booking_info(chat_id):
                '\n3. Комментарий: ' + users[chat_id]['data']['comment']
 
 
+def get_list_booking_info(booking):
+    date = booking["startTime"]
+    return 'Дата и время: {:0>2d}.{:0>2d} в {:0>2d}:00'.format(date[2], date[1], date[3]) + \
+        '\nКоличество гостей: ' + str(booking['participants']) + \
+           '\nКомментарий: ' + booking['comment']
+
 def get_link(link):
     global messages
     return messages['links'][link]

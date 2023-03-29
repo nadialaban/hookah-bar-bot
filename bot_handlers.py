@@ -78,6 +78,26 @@ def edit_form(message):
             bot.send_message(chat_id, get_message('wrongPhoneFormat'))
 
 
+# 1.2.4. Номер телефона
+@bot.message_handler(func=lambda message: check_user_state(message.chat.id, 'get_code'))
+def get_code(message):
+    chat_id = message.chat.id
+
+    if re.match("^\d{4}$", message.text):
+        res = post('/auth/confirm-number', {
+            "userId": get_user_data(chat_id, 'userId'),
+            "code": message.text,
+        })
+        if res['status'] == 'SUCCESS':
+            bot.send_message(chat_id, 'Номер телефона успешно подтвержден!')
+            bot.send_message(chat_id, get_message('abilities'), reply_markup=userMarkup)
+            clear_user_data(chat_id)
+        else:
+            bot.send_message(chat_id, 'Неверный код. Попробуйте снова')
+    else:
+        bot.send_message(chat_id, 'Код - это 4 цифры, которые пришли по СМС')
+
+
 # 1.3. Информация о заведении
 # 1.3.1. Меню
 @bot.message_handler(func=lambda message: message.text == smileBook)
@@ -98,7 +118,7 @@ def hookah_menu(message):
 # 1.3.2. Акции
 @bot.message_handler(func=lambda message: message.text == smileMoney)
 def show_discounts(message):
-    bot.send_message(message.chat.id,  get_message('discounts'), reply_markup=userMarkup)
+    bot.send_message(message.chat.id, get_message('discounts'), reply_markup=userMarkup)
 
 
 # 1.3.3. Соцсети
@@ -211,6 +231,24 @@ def edit_form(message):
         edit_booking_confirmation(chat_id)
 
 
+# 1.4.6. Мои брони
+@bot.message_handler(func=lambda message: message.text == smileBookings)
+def get_bookings(message):
+    chat_id = message.chat.id
+    res = get('/booking/by-user', {
+        "userId": get_user_data(chat_id, 'userId')
+    })
+    bookings = [booking for booking in res['bookings'] if booking['status'] != 'CANCELLED']
+    if not len(bookings):
+        bot.send_message(chat_id, get_message('noBookings'))
+    else:
+        for booking in bookings:
+            cancelBookingMarkup = types.InlineKeyboardMarkup()
+            cancelBookingButton = types.InlineKeyboardButton('Отменить ❌', callback_data='cancelBooking-' + str(booking['id']))
+            cancelBookingMarkup.row(cancelBookingButton)
+            bot.send_message(chat_id, get_list_booking_info(booking), reply_markup=cancelBookingMarkup)
+
+
 # 2. КоллБэк
 @bot.callback_query_handler(func=lambda call: True)
 def callback_confirm(call):
@@ -229,9 +267,9 @@ def callback_confirm(call):
         })
         hide_markup(chat_id)
         set_user_data(chat_id, 'userId', res['userId'])
-        clear_user_data(chat_id)
-        bot.send_message(chat_id, 'Готово!', reply_markup=hide)
-        bot.send_message(chat_id, get_message('abilities'), reply_markup=userMarkup)
+        bot.send_message(chat_id, 'На Ваш номер пришло СМС с кодом. Пожалуйста, отправьте код, чтобы подтвердить вход.',
+                         reply_markup=hide)
+        set_user_state(chat_id, 'get_code')
     if call.data == 'confirmBooking':
         res = get('/table/available', {
             'capacity': get_user_data(chat_id, 'participants'),
@@ -263,6 +301,14 @@ def callback_confirm(call):
             bot.send_message(chat_id, 'Столик забронирован!', reply_markup=userMarkup)
         else:
             bot.send_message(chat_id, 'К сожалению, свободных столов на это время нет..')
+    if 'cancelBooking' in call.data:
+        bookingId = int(call.data.split('-')[1])
+        post('/booking/cancel', {
+            "bookingId": bookingId
+        })
+        bot.send_message(chat_id, 'Бронь отменена!', reply_markup=userMarkup)
+        bot.edit_message_text('ОТМЕНЕНА', chat_id=chat_id, message_id=call.message.id)
+        hide_markup(chat_id, call.message.id)
 
 
 # Редактирование сообщения-подтверждения
@@ -279,5 +325,7 @@ def edit_booking_confirmation(chat_id):
 
 
 # Скрытие кнопки
-def hide_markup(chat_id):
-    bot.edit_message_reply_markup(chat_id, message_id=get_user_data(chat_id, 'confirm_message'), reply_markup=hide_inline)
+def hide_markup(chat_id, message_id=None):
+    if not message_id:
+        message_id = get_user_data(chat_id, 'confirm_message')
+    bot.edit_message_reply_markup(chat_id, message_id=message_id, reply_markup=hide_inline)
